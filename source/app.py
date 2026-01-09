@@ -12,7 +12,7 @@ st.set_page_config(
 # --- LOAD MODEL (Sử dụng Cache để tránh load lại mỗi khi gõ chữ) ---
 @st.cache_resource
 def load_model():
-    model_path = "vietnamese_ngram_mega.pkl"
+    model_path = "D:\\NNTN_Codespace\\source\\vietnamese_ngram_mega.pkl"
     try:
         return VietnamesePredictor.load_model(model_path)
     except Exception as e:
