@@ -9,20 +9,35 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- LOAD MODEL (Sử dụng Cache để tránh load lại mỗi khi gõ chữ) ---
+# --- LOAD MODEL 
+import os
+
 @st.cache_resource
 def load_model():
-    model_path = "D:\\NNTN_Codespace\\source\\vietnamese_ngram_mega.pkl"
-    try:
-        return VietnamesePredictor.load_model(model_path)
-    except Exception as e:
-        st.error(f"❌ Không tìm thấy file mô hình {model_path}. Hãy chạy train_model.py trước!")
-        return None
+    # 1. Danh sách các đường dẫn có khả năng chứa file mô hình
+    # Thử tìm ở thư mục hiện tại, sau đó thử tìm trong thư mục 'source/'
+    possible_paths = [
+        "vietnamese_ngram_mega.pkl", 
+        "source/vietnamese_ngram_mega.pkl",
+        os.path.join(os.path.dirname(__file__), "vietnamese_ngram_mega.pkl")
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            try:
+                return VietnamesePredictor.load_model(path)
+            except Exception as e:
+                st.error(f"Lỗi khi mở file {path}: {e}")
+    
+    # 2. Nếu không tìm thấy ở bất cứ đâu
+    st.error("KHÔNG TÌM THẤY FILE MÔ HÌNH!")
+    st.info("Hãy đảm bảo file 'vietnamese_ngram_mega.pkl' đã được upload lên GitHub cùng thư mục với app.py")
+    return None
 
 predictor = load_model()
 
 # --- GIAO DIỆN CHÍNH ---
-st.title("🚀 Bộ gõ Tiếng Việt Thông minh")
+st.title("Bộ gõ Tiếng Việt Thông minh")
 st.markdown("""
 Ứng dụng sử dụng mô hình **N-Gram (Trigram)** kết hợp dữ liệu từ 6 nguồn văn bản và từ điển nội bộ để dự báo từ tiếp theo.
 """)
@@ -56,9 +71,9 @@ if input_text:
                     st.info(f"Bạn đã chọn: **{word}**")
                     st.balloons() # Hiệu ứng chúc mừng khi chọn từ
         else:
-            st.caption("💡 Không tìm thấy gợi ý phù hợp. Hãy thử gõ thêm ký tự dở.")
+            st.caption(" Không tìm thấy gợi ý phù hợp. Hãy thử gõ thêm ký tự dở.")
     else:
-        st.warning("⚠️ Hãy nhập ít nhất 2 từ để bắt đầu dự báo.")
+        st.warning("Hãy nhập ít nhất 2 từ để bắt đầu dự báo.")
 
 st.divider()
 
@@ -74,7 +89,7 @@ if st.button("Dạy máy câu này"):
                 predictor.update_learning(new_sentence)
                 predictor.save_model("vietnamese_ngram_mega.pkl")
                 time.sleep(1)
-                st.success("✅ Tuyệt vời! Máy đã ghi nhớ câu này và sẽ gợi ý tốt hơn lần sau.")
+                st.success("Tuyệt vời! Máy đã ghi nhớ câu này và sẽ gợi ý tốt hơn lần sau.")
             else:
                 st.error("Lỗi: Hàm update_learning chưa được thêm vào predictor.py")
     else:
